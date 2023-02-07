@@ -1,6 +1,7 @@
 package samlidp
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -17,8 +18,8 @@ type User struct {
 	ScopedAffiliation string   `json:"scoped_affiliation,omitempty"`
 }
 
-// HandlerListUsers обрабатывает запрос `GET /api/v1/users/` и отвечает списком имен пользователей в формате JSON.
-func (s *Server) HandlerListUsers(c *gin.Context) {
+// HandleListUsers обрабатывает запрос `GET /api/v1/users/` и отвечает списком имен пользователей в формате JSON.
+func (s *Server) HandleListUsers(c *gin.Context) {
 	w := c.Writer
 
 	users, err := s.Store.List("/users/")
@@ -33,7 +34,22 @@ func (s *Server) HandlerListUsers(c *gin.Context) {
 	}{Users: users})
 }
 
-func (s *Server) HandleGetUser(c *gin.Context) {}
+// HandleGetUser обрабатывает запрос `GET /api/v1/users/:id` и отвечает пользовательским объектом в формате JSON. Поле хэшированного пароля исключено.
+func (s *Server) HandleGetUser(c *gin.Context) {
+	w := c.Writer
+	id := c.Param("id")
+
+	user := User{}
+
+	err := s.Store.Get(fmt.Sprintf("users/%s", id), &user)
+	if err != nil {
+		s.logger.Printf("ERROR: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	user.HashedPassword = nil
+	c.JSON(http.StatusOK, user)
+}
 
 func (s *Server) HandlePutUser(c *gin.Context) {}
 
