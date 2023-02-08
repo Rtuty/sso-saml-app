@@ -18,8 +18,8 @@ type User struct {
 	ScopedAffiliation string   `json:"scoped_affiliation,omitempty"`
 }
 
-// HandleListUsers обрабатывает запрос `GET /api/v1/users/` и отвечает списком имен пользователей в формате JSON.
-func (s *Server) HandleListUsers(c *gin.Context) {
+// ListUsers обрабатывает запрос `GET /api/v1/users/` и отвечает списком имен пользователей в формате JSON.
+func (s *Server) ListUsers(c *gin.Context) {
 	w := c.Writer
 
 	users, err := s.Store.List("/users/")
@@ -34,8 +34,8 @@ func (s *Server) HandleListUsers(c *gin.Context) {
 	}{Users: users})
 }
 
-// HandleGetUser обрабатывает запрос `GET /api/v1/users/:id` и отвечает пользовательским объектом в формате JSON. Поле хэшированного пароля исключено.
-func (s *Server) HandleGetUser(c *gin.Context) {
+// GetUser обрабатывает запрос `GET /api/v1/users/:id` и отвечает пользовательским объектом в формате JSON. Поле хэшированного пароля исключено.
+func (s *Server) GetUser(c *gin.Context) {
 	w := c.Writer
 	id := c.Param("id")
 
@@ -51,6 +51,18 @@ func (s *Server) HandleGetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (s *Server) HandlePutUser(c *gin.Context) {}
+func (s *Server) PutUser(c *gin.Context) {}
 
-func (s *Server) HandleDeleteUser(c *gin.Context) {}
+// DeleteUser удаляет пользователя
+func (s *Server) DeleteUser(c *gin.Context) {
+	w := c.Writer
+	id := c.Param("id")
+
+	err := s.Store.Delete(fmt.Sprintf("/users/%s", id))
+	if err != nil {
+		s.logger.Printf("ERROR: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
