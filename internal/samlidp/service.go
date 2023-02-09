@@ -100,5 +100,25 @@ func (s *Server) PutService(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-//
-func (s *Server) DeleteService(c *gin.Context) {}
+// DeleteService обрабатывает `DELETE /services/:id` запрос. Удаление сервиса
+func (s *Server) DeleteService(c *gin.Context) {
+	id := c.Param("id")
+	service := Service{}
+
+	err := s.Store.Get(fmt.Sprintf("/services/%s", id), &service)
+	if err != nil {
+		s.logger.Printf("Get metadata (DELETE) ERROR: %s", err)
+	}
+
+	if err := s.Store.Delete(fmt.Sprintf("/services/%s", id)); err != nil {
+		s.logger.Printf("ERROR: %s", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	s.idpConfigMu.Lock()
+	delete(s.serviceProviders, service.Metadata.EntityID)
+	s.idpConfigMu.Unlock()
+
+	c.Status(http.StatusNoContent)
+}
