@@ -26,3 +26,39 @@ type Server struct {
 	IDP              saml.IdentityProvider
 	Store            Store
 }
+
+// New возвращает новый сервер
+func New(opts Options) (*Server, error) {
+	metadataURL := opts.URL
+	metadataURL.Path = metadataURL.Path + "/metadata"
+
+	ssoURL := opts.URL
+	ssoURL.Path = ssoURL.Path + "/sso"
+
+	logr := opts.Logger
+	if logr == nil {
+		logr = logger.DefaultLogger
+	}
+
+	s := &Server{
+		serviceProviders: map[string]*saml.EntityDescriptor{},
+		IDP: saml.IdentityProvider{
+			Key:         opts.Key,
+			Logger:      logr,
+			Certificate: opts.Certificate,
+			MetadataURL: metadataURL,
+			SSOURL:      ssoURL,
+		},
+		logger: logr,
+		Store:  opts.Store,
+	}
+
+	s.IDP.SessionProvider = s
+	s.IDP.ServiceProviderProvider = s
+
+	if err := s.initService(); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
