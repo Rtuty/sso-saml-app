@@ -1,14 +1,16 @@
 package samlidp
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
 type User struct {
 	Name              string   `json:"name"`
-	PlaintextPassword *string  `json:"password,omitempty"` // not stored
+	PlaintextPassword *string  `json:"password,omitempty"`
 	HashedPassword    []byte   `json:"hashed_password,omitempty"`
 	Groups            []string `json:"groups,omitempty"`
 	Email             string   `json:"email,omitempty"`
@@ -51,7 +53,52 @@ func (s *Server) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (s *Server) PutUser(c *gin.Context) {}
+func (s *Server) PutUser(c *gin.Context) {
+	r := c.Request
+	w := c.Writer
+	id := c.Param("id")
+
+	user := User{}
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		s.logger.Printf("User body = nil. ERROR: %s", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	user.Name = id
+
+	if user.PlaintextPassword != nil {
+		var err error
+		user.HashedPassword, err = bcrypt.GenerateFromPassword([]byte(*user.PlaintextPassword), bcrypt.DefaultCost)
+		if err != nil {
+			s.logger.Printf("Get hashed user password. ERROR: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		existingUser := User{}
+		err := s.Store.Get(fmt.Sprintf("/users/%s", id), &existingUser)
+		switch {
+		case err == nil:
+			user.HashedPassword = existingUser.HashedPassword
+		case err == ErrNotFound:
+		//todo
+		default:
+			s.logger.Printf("ERROR: %s", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	}
+	user.PlaintextPassword = nil
+
+	err := s.Store.Put(fmt.Sprintf("/users/%s", id), &user)
+	if err != nil {
+		s.logger.Printf("ERROR: %s", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
 
 // DeleteUser удаляет пользователя
 func (s *Server) DeleteUser(c *gin.Context) {
