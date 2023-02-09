@@ -72,8 +72,33 @@ func (s *Server) GetService(c *gin.Context) {
 	c.XML(http.StatusOK, service.Metadata)
 }
 
-//
-func (s *Server) PutService(c *gin.Context) {}
+// PutService обрабатывает запрос `PUT /shortcuts/:id`. Он принимает служебные метаданные в формате XML в теле запроса и сохраняет их.
+func (s *Server) PutService(c *gin.Context) {
+	id := c.Param("id")
+	service := Service{}
+
+	metadata, err := getSPMetadata(c.Request.Body)
+	if err != nil {
+		s.logger.Printf("Get metadata (PUT) ERROR: %s", err)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	service.Metadata = *metadata
+
+	err = s.Store.Put(fmt.Sprintf("/services/%s", id), &service)
+	if err != nil {
+		s.logger.Printf("ERROR: %s", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	s.idpConfigMu.Lock()
+	s.serviceProviders[service.Metadata.EntityID] = &service.Metadata
+	s.idpConfigMu.Unlock()
+
+	c.Status(http.StatusNoContent)
+}
 
 //
 func (s *Server) DeleteService(c *gin.Context) {}
