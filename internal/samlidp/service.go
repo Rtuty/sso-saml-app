@@ -10,11 +10,28 @@ import (
 
 type Service struct {
 	Name     string
-	Metadata saml.EntitiesDescriptor // Метадата выдается в XML формате
+	Metadata saml.EntityDescriptor // Метадата выдается в XML формате
 }
 
 // initService Иннициализирует все сервисы и запускает identity provider для их обработки
 func (s *Server) initService() error {
+	serviceNames, err := s.Store.List("/services/")
+	if err != nil {
+		s.logger.Printf("Service initialization error: %s", err)
+		return err
+	}
+
+	for _, serviceName := range serviceNames {
+		service := Service{}
+		if err := s.Store.Get(fmt.Sprintf("/services/%s", serviceName), &service); err != nil {
+			s.logger.Printf("Service name list = nil. ERROR: %s", err)
+			return err
+		}
+
+		s.idpConfigMu.Lock()
+		s.serviceProviders[service.Metadata.EntityID] = &service.Metadata
+		s.idpConfigMu.Unlock()
+	}
 	return nil
 }
 
@@ -34,7 +51,7 @@ func (s *Server) GetServiceProvider(r *http.Request, serviceProviderID string) (
 func (s *Server) ListServices(c *gin.Context) {
 	services, err := s.Store.List("/services/")
 	if err != nil {
-		s.logger.Printf("ERROR: %S", err)
+		s.logger.Printf("ERROR: %s", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
