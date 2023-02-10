@@ -3,6 +3,7 @@ package samlidp
 import (
 	"crypto"
 	"crypto/x509"
+	"github.com/gin-gonic/gin"
 	"github.com/tenrok/saml"
 	"github.com/tenrok/saml/logger"
 	"net/http"
@@ -61,4 +62,21 @@ func New(opts Options) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+// InitializeHTTP TODO
+func (s *Server) InitializeHTTP(router *gin.Engine) {
+	router.GET("/metadata", func(c *gin.Context) {
+		s.idpConfigMu.RLock()
+		defer s.idpConfigMu.RUnlock()
+		s.IDP.ServeMetadata(c.Writer, c.Request)
+	})
+
+	router.Any("/sso", func(c *gin.Context) {
+		s.idpConfigMu.RLock()
+		defer s.idpConfigMu.RUnlock()
+		s.IDP.ServeMetadata(c.Writer, c.Request)
+	})
+
+	router.Any("login", s.HandleLogin)
 }
