@@ -78,5 +78,30 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 		s.IDP.ServeMetadata(c.Writer, c.Request)
 	})
 
-	router.Any("login", s.HandleLogin)
+	router.Any("login", s.Login)
+
+	v1 := router.Group("/api/v1")
+	{
+		usr := v1.Group("/users")
+		{
+			usr.GET("/", s.ListUsers)
+			usr.GET("/:id", s.GetUser)
+			usr.PUT("/:id", s.PutUser)
+			usr.DELETE("/:id", s.DeleteUser)
+		}
+
+		srv := v1.Group("/service")
+		{
+			srv.GET("/", s.ListServices)
+			srv.GET("/:id", s.GetService)
+			srv.PUT("/:id", s.PutService)
+			srv.POST("/:id", s.PutService)
+			srv.DELETE("/:id", s.DeleteService)
+		}
+
+		ssn := v1.Group("/sessions")
+		{
+			ssn.GET("/", s.ListSessions)
+		}
+	}
 }
