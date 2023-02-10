@@ -102,6 +102,7 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 		ssn := v1.Group("/sessions")
 		{
 			ssn.GET("/", s.ListSessions)
+			ssn.GET("/:id", s.GetSessionByID)
 		}
 	}
 }
