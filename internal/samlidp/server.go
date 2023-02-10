@@ -103,6 +103,7 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 		{
 			ssn.GET("/", s.ListSessions)
 			ssn.GET("/:id", s.GetSessionByID)
+			ssn.DELETE("/:id", s.DeleteSession)
 		}
 	}
 }
