@@ -89,3 +89,31 @@ func (s *SqliteStore) Get(key string, value interface{}) error {
 
 	return json.Unmarshal([]byte(v), &value)
 }
+
+// Put todo
+func (s *SqliteStore) Put(key string, value interface{}) error {
+	tx, err := s.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`INSERT INTO store(key, value) VALUES(:key, :value) ON CONFLICT(key) DO UPDATE SET value = :value;`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	v, _ := json.Marshal(value)
+	if _, err := stmt.Exec(sql.Named("key", key), sql.Named("value", string(v))); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
