@@ -6,6 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tenrok/saml/logger"
 	"modules/internal/tools"
+	"strings"
 )
 
 type SqliteStore struct {
@@ -38,6 +39,36 @@ func NewSqliteStore(path string) (*SqliteStore, error) {
 	store.DB = db
 
 	return store, nil
+}
+
+//Список возвращает все ключи, которые начинаются с `prefix`.
+//Префикс удаляется из каждого возвращаемого значения. Например, если ключи ["aa", "ab", "cd"], то List("a") выдаст []строку {"a", "b"} */
+func (s *SqliteStore) List(prefix string) ([]string, error) {
+	rv := []string{}
+
+	stmt, err := s.Prepare(`SELECT key FROM store  WHERE INSTR(key, :prefix) = 1`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(sql.Named("prefix", prefix))
+	if err != nil && err != sql.ErrNoRows {
+		return rv, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k string
+		if err := rows.Scan(&k); err != nil {
+			return rv, err
+		}
+		if strings.HasPrefix(k, prefix) {
+			rv = append(rv, strings.TrimPrefix(k, prefix))
+		}
+	}
+
+	return rv, nil
 }
 
 // Get достает ключи из БД и возвращает value
