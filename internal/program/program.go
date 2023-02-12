@@ -33,6 +33,28 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 		return nil
 	}
 
+	//todo add certificate
+
+	//todo add key
+
+	store, err := samlidp.NewSqliteStore(filepath.Join(workDir, "database.sqlite"))
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	p.store = store
+
+	idpServer, err := samlidp.New(samlidp.Options{
+		URL:         *baseURL,
+		Key:         nil, //todo
+		Certificate: nil, //todo
+		Store:       p.store,
+	})
+	if err != nil {
+		log.Fatalf("create idp: %s", err)
+		return nil
+	}
+
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 	gin.DefaultWriter = logger
@@ -58,4 +80,9 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 		IsDevelopment:           false,
 		BadHostHandler:          nil,
 	}))
+
+	idpServer.InitializeHTTP(router)
+
+	//todo return
+	return p
 }
