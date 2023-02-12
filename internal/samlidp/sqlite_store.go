@@ -117,3 +117,31 @@ func (s *SqliteStore) Put(key string, value interface{}) error {
 
 	return nil
 }
+
+// Delete
+func (s *SqliteStore) Delete(key string) error {
+	tx, err := s.Begin()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	stmt, err := tx.Prepare(`DELETE FROM store WHERE key = :key`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(sql.Named("key", key)); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
