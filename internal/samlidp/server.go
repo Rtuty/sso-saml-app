@@ -78,7 +78,7 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 		s.IDP.ServeMetadata(c.Writer, c.Request)
 	})
 
-	router.Any("login", s.Login)
+	router.Any("/login", s.Login)
 
 	v1 := router.Group("/api/v1")
 	{

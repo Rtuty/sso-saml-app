@@ -1,6 +1,8 @@
 package program
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/contrib/secure"
@@ -9,8 +11,10 @@ import (
 	"log"
 	"modules/internal/logger"
 	"modules/internal/samlidp"
+	"modules/internal/tools"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 )
 
@@ -33,7 +37,12 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 		return nil
 	}
 
-	//todo add certificate
+	certFilename := p.cfg.GetString("pathes.certFile")
+	cert, err := p.getCert(certFilename)
+	if err != nil {
+		log.Fatalf("Get sert ERROR:%s", err)
+		return nil
+	}
 
 	//todo add key
 
@@ -46,8 +55,8 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 
 	idpServer, err := samlidp.New(samlidp.Options{
 		URL:         *baseURL,
-		Key:         nil, //todo
-		Certificate: nil, //todo
+		Key:         nil,  //todo
+		Certificate: cert, //todo
 		Store:       p.store,
 	})
 	if err != nil {
@@ -85,4 +94,26 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 
 	//todo return
 	return p
+}
+
+// getCert получает сертификат
+func (p *Program) getCert(fileName string) (*x509.Certificate, error) {
+	var certData []byte
+
+	if tools.FileExists(fileName) {
+		var err error
+		certData, err = os.ReadFile(fileName)
+		if err != nil {
+			log.Fatalf("Reading idp cert. ERROR: %s", err)
+			return nil, err
+		}
+	}
+
+	b, _ := pem.Decode(certData)
+	c, err := x509.ParseCertificate(b.Bytes)
+	if err != nil {
+		log.Fatalf("Parsing idp cert. ERROR: %s", err)
+		return nil, err
+	}
+	return c, nil
 }
