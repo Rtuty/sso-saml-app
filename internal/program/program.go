@@ -1,6 +1,7 @@
 package program
 
 import (
+	"crypto"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -27,6 +28,8 @@ type Program struct {
 
 func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 	p := new(Program)
+	p.cfg = cfg
+
 	host := p.cfg.GetString("server.host")
 	port := p.cfg.GetInt("server.port")
 
@@ -44,7 +47,12 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 		return nil
 	}
 
-	//todo add key
+	keyFilename := p.cfg.GetString("pathes.keyFile")
+	key, err := p.getKey(keyFilename)
+	if err != nil {
+		log.Fatalf("Get key ERROR:%s", err)
+		return nil
+	}
 
 	store, err := samlidp.NewSqliteStore(filepath.Join(workDir, "database.sqlite"))
 	if err != nil {
@@ -55,8 +63,8 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 
 	idpServer, err := samlidp.New(samlidp.Options{
 		URL:         *baseURL,
-		Key:         nil,  //todo
-		Certificate: cert, //todo
+		Key:         key,
+		Certificate: cert,
 		Store:       p.store,
 	})
 	if err != nil {
@@ -116,4 +124,27 @@ func (p *Program) getCert(fileName string) (*x509.Certificate, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+// getKey получает ключ
+func (p *Program) getKey(fileName string) (crypto.PrivateKey, error) {
+	var keyData []byte
+
+	if tools.FileExists(fileName) {
+		var err error
+		keyData, err = os.ReadFile(fileName)
+		if err != nil {
+			log.Fatalf("Reading idp key. ERROR: %s", err)
+			return nil, err
+		}
+	}
+
+	b, _ := pem.Decode(keyData)
+	k, err := x509.ParsePKCS8PrivateKey(b.Bytes)
+	if err != nil {
+		log.Fatalf("Parsing id key. ERROR: %s", err)
+		return nil, err
+	}
+
+	return k, nil
 }
