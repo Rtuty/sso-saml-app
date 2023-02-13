@@ -2,10 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"github.com/fsnotify/fsnotify"
+	"github.com/kardianos/service"
 	"github.com/spf13/viper"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"modules/internal/logger"
+	"modules/internal/program"
+	"modules/internal/tools"
 	"os"
 	"path/filepath"
 )
@@ -55,4 +60,66 @@ func main() {
 
 	logger.SetEnabled(cfg.GetBool("writeLog"))
 	log.SetOutput(logger)
+
+	prg := program.New(cfg, logger, execDir)
+
+	// Создаем службу
+	options := make(service.KeyValue)
+	options["Restart"] = "on-success"
+	options["SuccessExitStatus"] = "1 2 8 SIGKILL"
+
+	svcConfig := &service.Config{
+		Name:             cfg.GetString("service.name"),
+		DisplayName:      cfg.GetString("service.displayName"),
+		Description:      cfg.GetString("service.description"),
+		UserName:         "",
+		Arguments:        nil,
+		Executable:       "",
+		Dependencies:     nil,
+		WorkingDirectory: "",
+		ChRoot:           "",
+		Option:           options,
+		EnvVars:          nil,
+	}
+
+	svc, err := service.New(prg, svcConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	errs := make(chan error, 5)
+
+	svcLogger, err := svc.Logger(errs)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		for {
+			if err := <-errs; err != nil {
+				log.Print(err)
+			}
+		}
+	}()
+
+	if len(*svcFlag) != 0 {
+		if !tools.Contains(service.ControlAction[:], *svcFlag, true) {
+			fmt.Fprintf(os.Stdout, "Valid actions: %q\n", service.ControlAction)
+		} else if err := service.Control(svc, *svcFlag); err != nil {
+			fmt.Fprintln(os.Stdout, err)
+		}
+		return
+	}
+
+	log.Printf("Used config file \"%s\"\n", cfg.ConfigFileUsed())
+
+	cfg.OnConfigChange(func(e fsnotify.Event) {
+		log.Println("Config file changed:", e.Name)
+		logger.SetEnabled(cfg.GetBool("writeLog"))
+	})
+	cfg.WatchConfig()
+
+	if err := svc.Run(); err != nil {
+		svcLogger.Error(err)
+	}
 }
