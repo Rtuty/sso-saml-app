@@ -15,6 +15,12 @@ type LoggerEx struct {
 
 var _ io.WriteCloser = (*LoggerEx)(nil)
 
+func New(logger *lumberjack.Logger) *LoggerEx {
+	l := new(LoggerEx)
+	l.Logger = logger
+	return l
+}
+
 func (l *LoggerEx) Write(p []byte) (int, error) {
 	if l.enabled {
 		if n, err := l.Logger.Write(p); err != nil {

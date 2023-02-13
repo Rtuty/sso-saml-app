@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/spf13/viper"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
+	"modules/internal/logger"
 	"os"
 	"path/filepath"
 )
@@ -41,4 +43,16 @@ func main() {
 	if err := cfg.ReadInConfig(); err != nil {
 		log.Fatal(err)
 	}
+
+	logger := logger.New(&lumberjack.Logger{
+		Filename:   cfg.GetString("pathes.logFile"),
+		MaxSize:    5,  // Максимальный размер в мегабайтах
+		MaxAge:     30, // Количество дней для хранения старых логов
+		MaxBackups: 10,
+		LocalTime:  true,
+		Compress:   true, // Сжимать в gzip-архивы
+	})
+
+	logger.SetEnabled(cfg.GetBool("writeLog"))
+	log.SetOutput(logger)
 }
