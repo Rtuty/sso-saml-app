@@ -17,6 +17,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Program struct {
@@ -71,7 +72,6 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 		log.Fatalf("create idp: %s", err)
 		return nil
 	}
-
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 	gin.DefaultWriter = logger
@@ -100,7 +100,16 @@ func New(cfg *viper.Viper, logger *logger.LoggerEx, workDir string) *Program {
 
 	idpServer.InitializeHTTP(router)
 
-	//todo return
+	addr := fmt.Sprintf("%s:%d", p.cfg.GetString("server.host"), p.cfg.GetInt("server.port"))
+
+	srv := &http.Server{
+		Addr:         addr,
+		Handler:      router,
+		WriteTimeout: 5 * time.Minute,
+	}
+
+	p.srv = srv
+
 	return p
 }
 
