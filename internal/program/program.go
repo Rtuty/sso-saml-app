@@ -1,6 +1,7 @@
 package program
 
 import (
+	"context"
 	"crypto"
 	"crypto/x509"
 	"encoding/pem"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/contrib/secure"
 	"github.com/gin-gonic/gin"
+	"github.com/kardianos/service"
 	"github.com/spf13/viper"
 	"log"
 	"modules/internal/logger"
@@ -156,4 +158,36 @@ func (p *Program) getKey(fileName string) (crypto.PrivateKey, error) {
 	}
 
 	return k, nil
+}
+
+// Start вызывается при запуске службы
+func (p *Program) Start(s service.Service) error {
+	p.exit = make(chan struct{})
+	go p.run()
+	return nil
+}
+
+// Stop вызывается при запуске службы
+func (p *Program) Stop(s service.Service) error {
+	close(p.exit)
+	return nil
+}
+
+func (p *Program) run() {
+	go func() {
+		if err := p.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ERROR: %s\n", err)
+		}
+	}()
+
+	log.Printf("Server is running at %s", p.srv.Addr)
+
+	<-p.exit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	p.srv.Shutdown(ctx)
+
+	p.store.Close()
 }
