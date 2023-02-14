@@ -1,0 +1,15 @@
+service:
+  name: "passport"
+  displayName: "Passport"
+  description: "Authorization service"
+
+server:
+  host: "localhost"
+  port: 8000
+  salt: "mdoRoPTjdiskKI"
+  useTLS: false
+
+writeLog: false
+
+pathes:
+  logFile: "./logs/passport.log"

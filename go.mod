@@ -3,9 +3,11 @@ module modules
 go 1.18
 
 require (
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.8.2
+	github.com/kardianos/service v1.2.2
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/spf13/viper v1.15.0
 	github.com/tenrok/saml v0.0.0-20221129202141-ce54a8319d39
@@ -15,7 +17,6 @@ require (
 
 require (
 	github.com/beevik/etree v1.1.0 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -24,7 +25,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kardianos/service v1.2.2 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect

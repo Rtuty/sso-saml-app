@@ -26,6 +26,7 @@ func main() {
 
 	execDir, _ := filepath.Split(execPath)
 	execDir = filepath.Clean(execDir)
+	configsDir := filepath.Join(execDir, "configs")
 
 	cfg := viper.New()
 
@@ -35,15 +36,15 @@ func main() {
 	cfg.SetDefault("server.host", "localhost")                                       // Хост сервера
 	cfg.SetDefault("server.port", 8000)                                              // Порт сервера
 	cfg.SetDefault("writeLog", false)                                                // Вести log-файл?
-	cfg.SetDefault("pathes.certFile", "/etc/passport/server.crt")                    // Путь до файла сертификата
-	cfg.SetDefault("pathes.keyFile", "/etc/passport/server.key")                     // Путь до ключа
+	cfg.SetDefault("pathes.certFile", filepath.Join(configsDir, "idp.cert"))         // Путь до файла сертификата
+	cfg.SetDefault("pathes.keyFile", filepath.Join(configsDir, "idp.key"))           // Путь до ключа
 	cfg.SetDefault("pathes.logFile", filepath.Join(execDir, "logs", "passport.log")) // Путь до log-файла
 
 	cfg.SetConfigName("passport")
 	cfg.SetConfigType("yaml")
 
 	cfg.AddConfigPath(filepath.Join(os.Getenv("PROGRAMDATA"), "Passport"))
-	cfg.AddConfigPath(filepath.Join(execDir, "configs"))
+	cfg.AddConfigPath(configsDir)
 
 	if err := cfg.ReadInConfig(); err != nil {
 		log.Fatal(err)
@@ -69,17 +70,10 @@ func main() {
 	options["SuccessExitStatus"] = "1 2 8 SIGKILL"
 
 	svcConfig := &service.Config{
-		Name:             cfg.GetString("service.name"),
-		DisplayName:      cfg.GetString("service.displayName"),
-		Description:      cfg.GetString("service.description"),
-		UserName:         "",
-		Arguments:        nil,
-		Executable:       "",
-		Dependencies:     nil,
-		WorkingDirectory: "",
-		ChRoot:           "",
-		Option:           options,
-		EnvVars:          nil,
+		Name:        cfg.GetString("service.name"),
+		DisplayName: cfg.GetString("service.displayName"),
+		Description: cfg.GetString("service.description"),
+		Option:      options,
 	}
 
 	svc, err := service.New(prg, svcConfig)
