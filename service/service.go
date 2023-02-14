@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"context"
+	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"github.com/tenrok/saml/samlsp"
 	"net/http"
+	"net/url"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +32,38 @@ func main() {
 
 	keyPair.Leaf, err = x509.ParseCertificate(keyPair.Certificate[0])
 	if err != nil {
-		panic(errors.New(fmt.Sprintf("Service keypair parsing error: %s", err)))
+		panic(errors.New(fmt.Sprintf("Service keypair parsing ERROR: %s", err)))
 	}
+
+	idpMetadataURL, err := url.Parse("http://localhost:8000/metadata")
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("Service metadata URL parsing have hil result ERROR: %s", err)))
+	}
+
+	idpMetadata, err := samlsp.FetchMetadata(context.Background(), http.DefaultClient, *idpMetadataURL)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("Service fetch metadata have hil result ERROR: %s", err)))
+	}
+
+	rootURL, err := url.Parse("http://localhost:8001")
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("RootURL service ERROR: %s", err)))
+	}
+
+	samlSP, _ := samlsp.New(samlsp.Options{
+		URL:         *rootURL,
+		Key:         keyPair.PrivateKey.(*rsa.PrivateKey),
+		Certificate: keyPair.Leaf,
+		IDPMetadata: idpMetadata,
+	})
+
+	spMetadataBuf, _ := xml.MarshalIndent(samlSP.ServiceProvider.Metadata(), "", " ")
+	spURL := *idpMetadataURL
+	spURL.Path = "/api/v1/services/sp"
+	http.Post(spURL.String(), "text/xml", bytes.NewReader(spMetadataBuf))
+
+	app := http.HandlerFunc(hello)
+	http.Handle("/hello/", samlSP.RequireAccount(app))
+	http.Handle("/saml/", samlSP)
+	http.ListenAndServe(":8001", nil)
 }
