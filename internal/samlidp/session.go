@@ -4,12 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/tenrok/saml"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"text/template"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/tenrok/saml"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var sessionMaxAge = time.Hour
@@ -35,7 +36,7 @@ func (s *Server) GetSession(w http.ResponseWriter, r *http.Request, req *saml.Id
 		}
 
 		session := &saml.Session{
-			ID:                    base64.StdEncoding.EncodeToString(randomBytes(32)),
+			ID:                    hex.EncodeToString(randomBytes(32)),
 			NameID:                user.Email,
 			CreateTime:            saml.TimeNow(),
 			ExpireTime:            saml.TimeNow().Add(sessionMaxAge),
