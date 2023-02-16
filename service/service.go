@@ -9,9 +9,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/tenrok/saml/samlsp"
 	"net/http"
 	"net/url"
+
+	"github.com/tenrok/saml/samlsp"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {

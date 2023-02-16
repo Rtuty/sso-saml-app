@@ -11,7 +11,7 @@ windows: prepare
 	export GOOS=windows
 	export GOARCH=amd64
 	export CGO_ENABLED=1
-	go build -trimpath --tags "osusergo,netgo,sqlite_omit_load_extension" -ldflags "-s -w" -o ./dist/passport.exe .
+	go build -trimpath -a --tags "osusergo,netgo,sqlite_omit_load_extension" -ldflags "-s -w" -o ./dist/passport.exe .
 
 linux: prepare
 	export GOOS=linux

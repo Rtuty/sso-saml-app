@@ -1,0 +1,1 @@
+"use strict";(self["webpackChunkandoma_passport_frontend"]=self["webpackChunkandoma_passport_frontend"]||[]).push([[992],{7279:function(n,s,t){t.d(s,{XG7:function(){return p}});var e=t(8515),o=t(8009),a=t(2373),r="BootstrapVue",u=(0,e.sr)({plugins:{componentsPlugin:o.X,directivesPlugin:a.w}}),p={install:u,NAME:r}}}]);

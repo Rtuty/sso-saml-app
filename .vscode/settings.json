@@ -1,0 +1,8 @@
+{
+    "editor.fontFamily": "'Fira Code', Consolas, 'Courier New', monospace",
+    "editor.fontLigatures": true,
+    "editor.fontWeight": "400",
+    "editor.foldingStrategy": "indentation",
+    "editor.rulers": [200]
+  }
+  

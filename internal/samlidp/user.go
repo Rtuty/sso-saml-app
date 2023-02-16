@@ -3,9 +3,10 @@ package samlidp
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 type User struct {
@@ -43,7 +44,7 @@ func (s *Server) GetUser(c *gin.Context) {
 
 	user := User{}
 
-	err := s.Store.Get(fmt.Sprintf("users/%s", id), &user)
+	err := s.Store.Get(fmt.Sprintf("/users/%s", id), &user)
 	if err != nil {
 		s.logger.Printf("ERROR: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

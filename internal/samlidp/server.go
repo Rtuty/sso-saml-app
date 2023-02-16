@@ -3,12 +3,13 @@ package samlidp
 import (
 	"crypto"
 	"crypto/x509"
-	"github.com/gin-gonic/gin"
-	"github.com/tenrok/saml"
-	"github.com/tenrok/saml/logger"
 	"net/http"
 	"net/url"
 	"sync"
+
+	"github.com/gin-gonic/gin"
+	"github.com/tenrok/saml"
+	"github.com/tenrok/saml/logger"
 )
 
 type Options struct {
@@ -81,7 +82,7 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 	router.Any("/login", s.Login)
 
 	v1 := router.Group("/api/v1")
-	{
+	/* {
 		usr := v1.Group("/users")
 		{
 			usr.GET("/", s.ListUsers)
@@ -95,7 +96,7 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 			srv.GET("/", s.ListServices)
 			srv.GET("/:id", s.GetService)
 			srv.PUT("/:id", s.PutService)
-			srv.POST("/:id", s.PutService)
+			// srv.POST("/:id", s.PutService)
 			srv.DELETE("/:id", s.DeleteService)
 		}
 
@@ -105,5 +106,21 @@ func (s *Server) InitializeHTTP(router *gin.Engine) {
 			ssn.GET("/:id", s.GetSessionByID)
 			ssn.DELETE("/:id", s.DeleteSession)
 		}
-	}
+	} */
+
+	v1.GET("/services/", s.ListServices)
+	v1.GET("/services/:id", s.GetService)
+	v1.PUT("/services/:id", s.PutService)
+	v1.POST("/services/:id", s.PutService)
+	v1.DELETE("/services/:id", s.DeleteService)
+
+	v1.GET("/users/", s.ListUsers)
+	v1.GET("/users/:id", s.GetUser)
+	v1.PUT("/users/:id", s.PutUser)
+	v1.DELETE("/users/:id", s.DeleteUser)
+
+	v1.GET("/sessions/", s.ListSessions)
+	v1.GET("/sessions/:id", s.GetSessionByID)
+	v1.DELETE("/sessions/:id", s.DeleteSession)
+
 }

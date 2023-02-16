@@ -3,10 +3,11 @@ package samlidp
 import (
 	"database/sql"
 	"encoding/json"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/tenrok/saml/logger"
 	"modules/internal/tools"
 	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/tenrok/saml/logger"
 )
 
 type SqliteStore struct {
@@ -81,7 +82,7 @@ func (s *SqliteStore) Get(key string, value interface{}) error {
 
 	var v string
 	if err := stmt.QueryRow(sql.Named("key", key)).Scan(&v); err != nil {
-		if err == sql.ErrNoRows {
+		if err != sql.ErrNoRows {
 			s.logger.Printf("Rows not found. ERROR: %s", err)
 			return err
 		}
