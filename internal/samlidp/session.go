@@ -68,7 +68,7 @@ func (s *Server) GetSession(w http.ResponseWriter, r *http.Request, req *saml.Id
 	if sessionCookie, err := r.Cookie("session"); err == nil {
 		session := &saml.Session{}
 		if err := s.Store.Get(fmt.Sprintf("/sessions/%s", sessionCookie.Value), session); err != nil {
-			if err = ErrNotFound {
+			if err == ErrNotFound {
 				s.sendLoginForm(w, r, req, "")
 				return nil
 			}
