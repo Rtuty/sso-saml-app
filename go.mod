@@ -11,7 +11,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/spf13/viper v1.15.0
 	github.com/tenrok/saml v0.0.0-20221129202141-ce54a8319d39
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/crypto v0.6.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -31,6 +31,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -43,9 +44,9 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

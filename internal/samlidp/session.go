@@ -19,7 +19,7 @@ var sessionMaxAge = time.Hour
 GetSession возвращает указатель на сессию.
 Пользователь указывает логин и пароль. Далее проверка на валидность и соответсвие в хранилище (пока локально).
 Если данные действительны, он GetSession устанавливает файл cookie и возвращает созданный объект сессии.
-TODO: Если сессионный файл cookie уже существует и представляет действительный сеанс, то сеанс возвращается
+Если сессионный файл cookie уже существует и представляет действительный сеанс, то сеанс возвращается
 */
 func (s *Server) GetSession(w http.ResponseWriter, r *http.Request, req *saml.IdpAuthnRequest) *saml.Session {
 	if r.Method == "POST" && r.PostForm.Get("user") != "" {
@@ -65,9 +65,29 @@ func (s *Server) GetSession(w http.ResponseWriter, r *http.Request, req *saml.Id
 		return session
 	}
 
+	if sessionCookie, err := r.Cookie("session"); err == nil {
+		session := &saml.Session{}
+		if err := s.Store.Get(fmt.Sprintf("/sessions/%s", sessionCookie.Value), session); err != nil {
+			if err = ErrNotFound {
+				s.sendLoginForm(w, r, req, "")
+				return nil
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return nil
+		}
+
+		if saml.TimeNow().After(session.ExpireTime) {
+			s.sendLoginForm(w, r, req, "")
+			return nil
+		}
+		return session
+	}
+
+	s.sendLoginForm(w, r, req, "")
 	return nil
 }
 
+// sendLoginForm возвращает форму логина в виде html шаблона
 func (s *Server) sendLoginForm(w http.ResponseWriter, r *http.Request, req *saml.IdpAuthnRequest, toast string) {
 	tmpl := template.Must(template.New("saml-post-form").Parse(`` +
 		`<html>` +
