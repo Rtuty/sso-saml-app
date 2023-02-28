@@ -3,8 +3,9 @@ package samlidp
 import (
 	"encoding/xml"
 	"errors"
-	"github.com/tenrok/saml"
 	"io"
+
+	"github.com/crewjam/saml"
 )
 
 func randomBytes(n int) []byte {

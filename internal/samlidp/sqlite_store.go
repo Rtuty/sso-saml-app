@@ -6,8 +6,8 @@ import (
 	"modules/internal/tools"
 	"strings"
 
+	"github.com/crewjam/saml/logger"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tenrok/saml/logger"
 )
 
 type SqliteStore struct {

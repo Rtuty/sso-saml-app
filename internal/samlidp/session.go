@@ -8,8 +8,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/crewjam/saml"
 	"github.com/gin-gonic/gin"
-	"github.com/tenrok/saml"
 	"golang.org/x/crypto/bcrypt"
 )
 

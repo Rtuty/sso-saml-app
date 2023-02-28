@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/crewjam/saml"
+	"github.com/crewjam/saml/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/tenrok/saml"
-	"github.com/tenrok/saml/logger"
 )
 
 type Options struct {

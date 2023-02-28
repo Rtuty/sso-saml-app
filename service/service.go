@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/tenrok/saml/samlsp"
+	"github.com/crewjam/saml/samlsp"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {

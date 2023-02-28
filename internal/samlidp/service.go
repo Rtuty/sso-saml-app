@@ -2,10 +2,11 @@ package samlidp
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/tenrok/saml"
 	"net/http"
 	"os"
+
+	"github.com/crewjam/saml"
+	"github.com/gin-gonic/gin"
 )
 
 type Service struct {
